@@ -1,0 +1,29 @@
+{
+  "defaults": {
+    "project": 1,
+    "env": 1
+  },
+  "actives": {
+    "project": 1,
+    "env": 1
+  },
+  "projects": [
+    {
+      "idx": 1,
+      "id": "7101000000004001",
+      "name": "blockchain",
+      "domain": {
+        "id": "10033966910",
+        "name": "blockchain-764049413.development"
+      },
+      "env": [
+        {
+          "idx": 1,
+          "id": "764049413",
+          "name": "Development",
+          "type": 3
+        }
+      ]
+    }
+  ]
+}

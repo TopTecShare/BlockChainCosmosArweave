@@ -1,0 +1,16 @@
+{
+	"name": "blockchain_function",
+	"version": "1.0.0",
+	"main": "index.js",
+	"author": "oleksdevr@gmail.com",
+	"license": "MIT",
+	"dependencies": {
+		"@tendermint/sig": "^0.6.0",
+		"arweave": "^1.10.18",
+		"axios": "^0.24.0",
+		"express": "^4.17.1",
+		"express-useragent": "^1.0.15",
+		"zcatalyst-sdk-node": "latest"
+	},
+	"type": "commonjs"
+}

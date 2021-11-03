@@ -1,19 +1,15 @@
-// const { createWalletFromMnemonic, signTx } = require('@tendermint/sig');
-// const Arweave = require('arweave');
+'use strict';
 
-// const axios = require('axios');
+const { createWalletFromMnemonic, signTx } = require('@tendermint/sig');
+const Arweave = require('arweave');
 
-import pkg from '@tendermint/sig';
-import Arweave from 'arweave';
-import axios from 'axios';
-
-const { createWalletFromMnemonic, signTx } = pkg;
+const axios = require('axios');
 const arweave = Arweave.init({
-  host: 'arweave.net',// Hostname or IP address for a Arweave host
-  port: 443,          // Port
-  protocol: 'https',  // Network protocol http or https
-  timeout: 20000,     // Network request timeouts in milliseconds
-  logging: false,     // Enable network request logging
+	host: 'arweave.net',// Hostname or IP address for a Arweave host
+	port: 443,          // Port
+	protocol: 'https',  // Network protocol http or https
+	timeout: 20000,     // Network request timeouts in milliseconds
+	logging: false,     // Enable network request logging
 });
 
 process.env.NODE_ENDPOINT = "https://node.atomscan.com";
@@ -27,107 +23,117 @@ const wallet = createWalletFromMnemonic(process.env.MNEMONIC); // BIP39 mnemonic
 process.env.ADDRESS = wallet.address;
 
 const accountBalance = async (address) => {
-  const response = await axios.get(process.env.NODE_ENDPOINT + '/cosmos/bank/v1beta1/balances/' + address)
-  console.log(response.data.balances);
+	const response = await axios.get(process.env.NODE_ENDPOINT + '/cosmos/bank/v1beta1/balances/' + address)
+	console.log(response.data.balances);
 }
 
 const getMetadata = async (address) => {
-  const response = await axios.get(process.env.NODE_ENDPOINT + '/cosmos/auth/v1beta1/accounts/' + address)
-  const { account_number, sequence } = response.data.account;
-  const chain_id = process.env.CHAIN_ID;
-  return {
-    account_number,
-    chain_id,
-    sequence
-  }
+	const response = await axios.get(process.env.NODE_ENDPOINT + '/cosmos/auth/v1beta1/accounts/' + address)
+	const { account_number, sequence } = response.data.account;
+	const chain_id = process.env.CHAIN_ID;
+	return {
+		account_number,
+		chain_id,
+		sequence
+	}
 }
 
 const cosmosTxn = async (msg) => {
-  const signMeta = await getMetadata(process.env.ADDRESS);
-  const tx = {
-    fee: {
-      amount: [{ amount: '1', denom: 'uatom' }],
-      gas: '85000'
-    },
-    memo: msg,
-    msg: [{
-      type: 'cosmos-sdk/MsgSend',
-      value: {
-        from_address: process.env.ADDRESS,
-        to_address: process.env.TO_ADDRESS,
-        amount: [{ amount: '1', denom: 'uatom' }]
-      }
-    }]
-  };
-  const stdTx = signTx(tx, signMeta, wallet);
-  const body = {
-    tx: stdTx,
-    mode: "sync"
-  }
-  console.log(body);
-  const response = await axios
-    .post(
-      process.env.NODE_ENDPOINT + '/txs',
-      body
-    )
-  console.log(response.data);
-  return response.data
+	const signMeta = await getMetadata(process.env.ADDRESS);
+	const tx = {
+		fee: {
+			amount: [{ amount: '1', denom: 'uatom' }],
+			gas: '85000'
+		},
+		memo: msg,
+		msg: [{
+			type: 'cosmos-sdk/MsgSend',
+			value: {
+				from_address: process.env.ADDRESS,
+				to_address: process.env.TO_ADDRESS,
+				amount: [{ amount: '1', denom: 'uatom' }]
+			}
+		}]
+	};
+	const stdTx = signTx(tx, signMeta, wallet);
+	const body = {
+		tx: stdTx,
+		mode: "sync"
+	}
+	console.log(body);
+	const response = await axios
+		.post(
+			process.env.NODE_ENDPOINT + '/txs',
+			body
+		)
+	console.log(response.data);
+	return response.data
 }
 
 // await cosmosTxn('Welcom Riccardo T. Just for test msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg 100kb msg ');
 // accountBalance(process.env.ADDRESS);
 
 const genArweaveWallet = async () => {
-  return await arweave.wallets.generate();
+	return await arweave.wallets.generate();
 }
 
 const getArweaveBalanceFromAddress = async (address) => {
-  const balance = await arweave.wallets.getBalance(address);
-  let ar = arweave.ar.winstonToAr(balance);
-  return ar;
+	const balance = await arweave.wallets.getBalance(address);
+	let ar = arweave.ar.winstonToAr(balance);
+	return ar;
+	// console.log(balance);
+	//125213858712
+
+	// console.log(ar);
+	//0.125213858712
 }
 
 const getArweaveBalanceFromWallet = async (wallet) => {
-  return await getArweaveBalanceFromAddress(await arweave.wallets.jwkToAddress(wallet))
+	return await getArweaveBalanceFromAddress(await arweave.wallets.jwkToAddress(wallet))
 }
+// ;
 
-const getArweaveData = async (transactionId) => {
-  return await arweave.transactions.getData(transactionId, { decode: true, string: true });
-}
-
-const uploadMessageToArweave = async (message) => {
-  let transaction = await arweave.createTransaction({
-    data: Buffer.from(message, 'utf8')
-  }, JSON.parse(process.env.ARWEAVE_WALLET));
-
-  await arweave.transactions.sign(transaction, JSON.parse(process.env.ARWEAVE_WALLET));
-  console.log(transaction);
-
-  let uploader = await arweave.transactions.getUploader(transaction);
-
-  while (!uploader.isComplete) {
-    await uploader.uploadChunk();
-    console.log(`${uploader.pctComplete}% complete, ${uploader.uploadedChunks}/${uploader.totalChunks}`);
-  }
-
-  return transaction.id;
-}
 // console.log(await genArweaveWallet())
 // console.log(await arweave.wallets.jwkToAddress(JSON.parse(process.env.ARWEAVE_WALLET)));
 // console.log(await getArweaveBalanceFromWallet(JSON.parse(process.env.ARWEAVE_WALLET)));
 // arweave.network.getInfo().then(console.log);
 // console.log(Buffer.from('Some data', 'utf8'));
 
-// arweave.wallets.getLastTransactionID(await arweave.wallets.jwkToAddress(JSON.parse(process.env.ARWEAVE_WALLET))).then((transactionId) => {
-//   console.log(transactionId);
-//   //3pXpj43Tk8QzDAoERjHE3ED7oEKLKephjnVakvkiHF8
-// });
+const express = require("express");
+const bodyParser = require("body-parser");
+const app = express();
+app.use(bodyParser.urlencoded({ extended: false }));
+const userAgent = require('express-useragent');
+app.use(userAgent.express());
+app.use(express.json());
+app.get("/", async (req, res) => {
+	const url = req.url;
+	const body = req.body;
+	const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+	const agent = req.useragent;
+	console.log(ip);
 
+	switch (url) {
+		case '/':
+			res.writeHead(200, { 'Content-Type': 'text/text' });
+			// Object.getOwnPropertyNames(req).forEach(e => {
+			// 	console.log(req[e]);
 
-// // import fs from 'fs';
-// // let data = fs.readFileSync('index.js');
+			// })
+			// console.log(Object.getOwnPropertyNames(req));
+			// await cosmosTxn('this is just for test so do not worry about our project!').then(e => {
+			// 	res.write('Hi' + JSON.stringify(e) + 'Ji');
+			// });
+			res.write('hello world\n');
+			res.write(`URL = ${url}\nBODY = ${JSON.stringify(body)}\nIP = ${ip}\nAGENT = ${JSON.stringify(agent)}`);
 
+			break;
+		default:
+			res.writeHead(404);
+			res.write('You might find the page you are looking for at "/" path');
+			break;
+	}
+	res.end();
 
-
-// const msg = 'Hello Riccardo.\nNice to meet you here.\nIf you know to use skype, let us do chat there.\neestimorol.ice9208g@gmail.com, live:.cid.25dce72e8ffbf3f3 are my gmail and skype for VIP.\nPlease use these gmail and skype address instead.\nThank you.'
-// console.log(await getArweaveData('await uploadMessageToArweave(msg)'));
+});
+module.exports = app;

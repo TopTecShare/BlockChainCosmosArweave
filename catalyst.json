@@ -1,1 +1,9 @@
-{}
+{
+  "functions": {
+    "targets": [
+      "blockchain"
+    ],
+    "ignore": [],
+    "source": "functions"
+  }
+}

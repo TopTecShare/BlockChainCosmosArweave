@@ -1,0 +1,10 @@
+{
+	"deployment": {
+		"name": "blockchain",
+		"stack": "node12",
+		"type": "advancedio"
+	},
+	"execution": {
+		"main": "index.js"
+	}
+}
